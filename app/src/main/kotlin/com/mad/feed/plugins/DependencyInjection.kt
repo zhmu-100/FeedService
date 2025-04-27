@@ -10,11 +10,12 @@ import org.koin.logger.slf4jLogger
 fun Application.configureDependencyInjection() {
   install(Koin) {
     slf4jLogger()
-    modules(appModule)
+    modules(appModule(this@configureDependencyInjection))
   }
 }
 
-val appModule = module {
+fun appModule(app: Application) = module {
+  single { app.environment.config }
   // Repositories
   single<IPostAction> { PostAction(get()) }
   single<ICommentAction> { CommentAction(get()) }

@@ -133,14 +133,12 @@ class PostAction(private val config: ApplicationConfig) : IPostAction {
 
   private suspend inline fun <reified R> callRead(
       table: String,
-      filters: Map<String, String>?
-  ): List<R> {
-    val body = DbReadRequest(table = table, filters = filters)
-    return http
-        .post("$baseUrl/read") {
-          contentType(ContentType.Application.Json)
-          setBody(body)
-        }
-        .body()
-  }
+      filters: Map<String, String>? = null
+  ): List<R> =
+      http
+          .post("$baseUrl/read") {
+            contentType(ContentType.Application.Json)
+            setBody(DbReadRequest(table = table, filters = filters))
+          }
+          .body()
 }

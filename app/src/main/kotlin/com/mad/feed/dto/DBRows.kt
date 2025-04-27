@@ -2,6 +2,7 @@ package com.mad.feed.dto
 
 import kotlinx.serialization.Serializable
 
+@Serializable
 data class DbPostRow(
     val id: String,
     val userid: String,

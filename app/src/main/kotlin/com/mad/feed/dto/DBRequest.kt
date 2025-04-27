@@ -1,5 +1,6 @@
 package com.mad.feed.dto
 
+import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.Serializable
 
 /**
@@ -21,7 +22,7 @@ import kotlinx.serialization.Serializable
 data class DbReadRequest(
     val table: String,
     val columns: List<String> = listOf("*"),
-    val filters: Map<String, String>? = null
+    @EncodeDefault(EncodeDefault.Mode.NEVER) val filters: Map<String, String>? = null
 )
 
 /**

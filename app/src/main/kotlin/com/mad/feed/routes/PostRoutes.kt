@@ -2,7 +2,6 @@ package com.mad.feed.routes
 
 import com.mad.feed.models.CreatePostRequest
 import com.mad.feed.models.ListPostsResponse
-import com.mad.feed.models.PaginationRequest
 import com.mad.feed.services.PostService
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -35,9 +34,10 @@ fun Route.configurePostRoutes() {
 
     // List posts for general feed
     get {
-      val pagination = call.receive<PaginationRequest>()
-      val (posts, _) = postService.listPosts(pagination.page, pagination.pageSize)
+      val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
+      val pageSize = call.request.queryParameters["page_size"]?.toIntOrNull() ?: 20
 
+      val (posts, _) = postService.listPosts(page, pageSize)
       call.respond(ListPostsResponse(posts = posts))
     }
 
@@ -46,8 +46,9 @@ fun Route.configurePostRoutes() {
       val userId =
           call.parameters["userId"]
               ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing user ID")
-      val pagination = call.receive<PaginationRequest>()
-      val (posts, _) = postService.listUserPosts(userId, pagination.page, pagination.pageSize)
+      val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
+      val pageSize = call.request.queryParameters["page_size"]?.toIntOrNull() ?: 20
+      val (posts, _) = postService.listUserPosts(userId, page, pageSize)
 
       call.respond(ListPostsResponse(posts = posts))
     }
