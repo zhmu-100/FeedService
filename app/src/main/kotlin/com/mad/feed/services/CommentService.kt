@@ -7,8 +7,8 @@ import com.mad.feed.models.PostComment
 import java.util.UUID
 
 class CommentService(
-  private val commentAction: ICommentAction,
-  private val postAction: IPostAction
+    private val commentAction: ICommentAction,
+    private val postAction: IPostAction
 ) {
   suspend fun createComment(postId: String, request: CreateCommentRequest): PostComment? {
     // Verify post exists
@@ -22,5 +22,5 @@ class CommentService(
   }
 
   suspend fun listComments(postId: String, page: Int, pageSize: Int) =
-    commentAction.listComments(postId, page, pageSize)
+      commentAction.listComments(postId, page, pageSize)
 }

@@ -6,9 +6,7 @@ import com.mad.feed.models.Post
 import com.mad.feed.models.PostAttachment
 import java.util.UUID
 
-class PostService(
-    private val postAction: IPostAction
-) {
+class PostService(private val postAction: IPostAction) {
   suspend fun createPost(request: CreatePostRequest): Post {
     val postId = UUID.randomUUID().toString()
 
@@ -35,8 +33,7 @@ class PostService(
   suspend fun getPostById(id: String): Post? = postAction.getPostById(id)
 
   suspend fun listUserPosts(userId: String, page: Int, pageSize: Int) =
-    postAction.listUserPosts(userId, page, pageSize)
+      postAction.listUserPosts(userId, page, pageSize)
 
-  suspend fun listPosts(page: Int, pageSize: Int) =
-    postAction.listPosts(page, pageSize)
+  suspend fun listPosts(page: Int, pageSize: Int) = postAction.listPosts(page, pageSize)
 }
