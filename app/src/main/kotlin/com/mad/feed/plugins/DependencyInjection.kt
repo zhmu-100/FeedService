@@ -1,6 +1,6 @@
 package com.mad.feed.plugins
 
-import com.mad.feed.repositories.*
+import com.mad.feed.actions.*
 import com.mad.feed.services.*
 import io.ktor.server.application.*
 import org.koin.dsl.module
@@ -16,12 +16,12 @@ fun Application.configureDependencyInjection() {
 
 val appModule = module {
   // Repositories
-  single<PostRepository> { PostRepositoryImpl() }
-  single<CommentRepository> { CommentRepositoryImpl() }
-  single<ReactionRepository> { ReactionRepositoryImpl() }
+  single<IPostAction> { PostAction(get()) }
+  single<ICommentAction> { CommentAction(get()) }
+  single<IReactionAction> { ReactionAction(get()) }
 
   // Services
-  single { PostService(get(), get()) }
+  single { PostService(get()) }
   single { CommentService(get(), get()) }
   single { ReactionService(get()) }
 }

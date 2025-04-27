@@ -1,17 +1,15 @@
 package com.mad.feed.services
 
+import com.mad.feed.actions.IPostAction
 import com.mad.feed.models.CreatePostRequest
 import com.mad.feed.models.Post
 import com.mad.feed.models.PostAttachment
-import com.mad.feed.repositories.PostRepository
-import com.mad.feed.repositories.ReactionRepository
 import java.util.UUID
 
 class PostService(
-    private val postRepository: PostRepository,
-    private val reactionRepository: ReactionRepository
+    private val postAction: IPostAction
 ) {
-  fun createPost(request: CreatePostRequest): Post {
+  suspend fun createPost(request: CreatePostRequest): Post {
     val postId = UUID.randomUUID().toString()
 
     val attachments =
@@ -31,18 +29,14 @@ class PostService(
             content = request.content,
             attachments = attachments)
 
-    return postRepository.createPost(post)
+    return postAction.createPost(post)
   }
 
-  fun getPostById(id: String): Post? {
-    return postRepository.getPostById(id)
-  }
+  suspend fun getPostById(id: String): Post? = postAction.getPostById(id)
 
-  fun listUserPosts(userId: String, page: Int, pageSize: Int): Pair<List<Post>, Long> {
-    return postRepository.listUserPosts(userId, page, pageSize)
-  }
+  suspend fun listUserPosts(userId: String, page: Int, pageSize: Int) =
+    postAction.listUserPosts(userId, page, pageSize)
 
-  fun listPosts(page: Int, pageSize: Int): Pair<List<Post>, Long> {
-    return postRepository.listPosts(page, pageSize)
-  }
+  suspend fun listPosts(page: Int, pageSize: Int) =
+    postAction.listPosts(page, pageSize)
 }

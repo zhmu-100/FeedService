@@ -1,18 +1,19 @@
 package com.mad.feed.services
 
+import com.mad.feed.actions.IReactionAction
 import com.mad.feed.models.AddReactionRequest
 import com.mad.feed.models.PostReaction
-import com.mad.feed.repositories.ReactionRepository
 
-class ReactionService(private val reactionRepository: ReactionRepository) {
-  fun addReaction(postId: String, request: AddReactionRequest): PostReaction {
-    val reaction =
-        PostReaction(postId = postId, userId = request.userId, reaction = request.reaction)
+class ReactionService(private val reactionAction: IReactionAction) {
+  suspend fun addReaction(postId: String, request: AddReactionRequest): PostReaction =
+    reactionAction.addReaction(
+      PostReaction(
+        postId = postId,
+        userId = request.userId,
+        reaction = request.reaction
+      )
+    )
 
-    return reactionRepository.addReaction(reaction)
-  }
-
-  fun removeReaction(postId: String, userId: String): Boolean {
-    return reactionRepository.removeReaction(postId, userId)
-  }
+  suspend fun removeReaction(postId: String, userId: String): Boolean =
+    reactionAction.removeReaction(postId, userId)
 }

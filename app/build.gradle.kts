@@ -36,12 +36,6 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation-jvm:2.2.4")
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:2.2.4")
 
-    implementation("org.jetbrains.exposed:exposed-core:0.41.1")
-    implementation("org.jetbrains.exposed:exposed-dao:0.41.1")
-    implementation("org.jetbrains.exposed:exposed-jdbc:0.41.1")
-    implementation("org.jetbrains.exposed:exposed-java-time:0.41.1")
-    implementation("org.postgresql:postgresql:42.5.0")
-
     implementation("io.insert-koin:koin-core:3.3.3")
     implementation("io.insert-koin:koin-ktor:3.3.1")
     implementation("io.insert-koin:koin-logger-slf4j:3.3.0")
