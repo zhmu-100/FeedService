@@ -54,35 +54,27 @@ class CommentAction(config: ApplicationConfig) : ICommentAction {
         comment
       }
 
-  override suspend fun listComments(
-      postId: String,
-      page: Int,
-      pageSize: Int
-  ): Pair<List<PostComment>, Long> =
+  override suspend fun listComments(postId: String, page: Int, pageSize: Int): List<PostComment> =
       withContext(Dispatchers.IO) {
         val commentRows =
-            callRead<DbPostCommentRow>(table = "post_comments", filters = mapOf("postid" to postId))
+            callRead<DbPostCommentRow>("post_comments", mapOf("postid" to postId))
                 .sortedByDescending { Instant.parse(it.date) }
+                .drop((page - 1) * pageSize)
+                .take(pageSize)
 
-        val total = commentRows.size.toLong()
-        val slice = commentRows.drop((page - 1) * pageSize).take(pageSize)
-
-        val comments =
-            slice.map { row ->
-              val reactionRows =
-                  callRead<DbCommentReactionRow>(
-                      table = "comment_reactions", filters = mapOf("commentid" to row.id))
-              PostComment(
-                  id = row.id,
-                  userId = row.userid,
-                  content = row.content,
-                  date = Instant.parse(row.date),
-                  reactions =
-                      reactionRows.map {
-                        PostReaction(row.id, it.userid, ReactionType.valueOf(it.reaction))
-                      })
-            }
-        Pair(comments, total)
+        commentRows.map { row ->
+          val reactionRows =
+              callRead<DbCommentReactionRow>("comment_reactions", mapOf("commentid" to row.id))
+          PostComment(
+              id = row.id,
+              userId = row.userid,
+              content = row.content,
+              date = Instant.parse(row.date),
+              reactions =
+                  reactionRows.map {
+                    PostReaction(row.id, it.userid, ReactionType.valueOf(it.reaction))
+                  })
+        }
       }
 
   private suspend inline fun <reified R> callRead(

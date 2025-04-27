@@ -3,6 +3,7 @@ package com.mad.feed.routes
 import com.mad.feed.models.CreateCommentRequest
 import com.mad.feed.models.ListCommentsResponse
 import com.mad.feed.models.PaginationRequest
+import com.mad.feed.models.PostComment
 import com.mad.feed.services.CommentService
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -20,13 +21,12 @@ fun Route.configureCommentRoutes() {
       val postId =
           call.parameters["postId"]
               ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing post ID")
-      val request = call.receive<CreateCommentRequest>()
-
-      val comment =
-          commentService.createComment(postId, request)
+      val body: PostComment = call.receive()
+      val createdComment =
+          commentService.createComment(CreateCommentRequest(postId = postId, comment = body))
               ?: return@post call.respond(HttpStatusCode.NotFound, "Post not found")
 
-      call.respond(HttpStatusCode.Created, comment)
+      call.respond(HttpStatusCode.Created, createdComment)
     }
 
     // List comments for a post
@@ -35,16 +35,9 @@ fun Route.configureCommentRoutes() {
           call.parameters["postId"]
               ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing post ID")
       val pagination = call.receive<PaginationRequest>()
+      val comments = commentService.listComments(postId, pagination.page, pagination.pageSize)
 
-      val (comments, totalCount) =
-          commentService.listComments(postId, pagination.page, pagination.pageSize)
-
-      call.respond(
-          ListCommentsResponse(
-              comments = comments,
-              totalCount = totalCount,
-              page = pagination.page,
-              pageSize = pagination.pageSize))
+      call.respond(ListCommentsResponse(comments = comments))
     }
   }
 }

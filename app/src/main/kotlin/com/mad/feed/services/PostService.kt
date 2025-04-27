@@ -8,25 +8,20 @@ import java.util.UUID
 
 class PostService(private val postAction: IPostAction) {
   suspend fun createPost(request: CreatePostRequest): Post {
+    val inPost = request.post
     val postId = UUID.randomUUID().toString()
 
     val attachments =
-        request.attachments.map { attachment ->
+        inPost.attachments.map { a ->
           PostAttachment(
               id = UUID.randomUUID().toString(),
               postId = postId,
-              type = attachment.type,
-              position = attachment.position,
-              url = attachment.url)
+              type = a.type,
+              position = a.position,
+              minioId = a.minioId)
         }
 
-    val post =
-        Post(
-            id = postId,
-            userId = request.userId,
-            content = request.content,
-            attachments = attachments)
-
+    val post = inPost.copy(id = postId, attachments = attachments)
     return postAction.createPost(post)
   }
 

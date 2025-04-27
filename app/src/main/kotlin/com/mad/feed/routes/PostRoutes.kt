@@ -36,14 +36,9 @@ fun Route.configurePostRoutes() {
     // List posts for general feed
     get {
       val pagination = call.receive<PaginationRequest>()
-      val (posts, totalCount) = postService.listPosts(pagination.page, pagination.pageSize)
+      val (posts, _) = postService.listPosts(pagination.page, pagination.pageSize)
 
-      call.respond(
-          ListPostsResponse(
-              posts = posts,
-              totalCount = totalCount,
-              page = pagination.page,
-              pageSize = pagination.pageSize))
+      call.respond(ListPostsResponse(posts = posts))
     }
 
     // List posts by a specific user
@@ -52,16 +47,9 @@ fun Route.configurePostRoutes() {
           call.parameters["userId"]
               ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing user ID")
       val pagination = call.receive<PaginationRequest>()
+      val (posts, _) = postService.listUserPosts(userId, pagination.page, pagination.pageSize)
 
-      val (posts, totalCount) =
-          postService.listUserPosts(userId, pagination.page, pagination.pageSize)
-
-      call.respond(
-          ListPostsResponse(
-              posts = posts,
-              totalCount = totalCount,
-              page = pagination.page,
-              pageSize = pagination.pageSize))
+      call.respond(ListPostsResponse(posts = posts))
     }
   }
 }
