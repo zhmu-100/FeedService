@@ -6,7 +6,6 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.config.*
@@ -44,9 +43,8 @@ class PostAction(private val config: ApplicationConfig) : IPostAction {
                   "postid" to a.postId,
                   "type" to a.type.name,
                   "position" to a.position.toString(),
-                  "url" to a.url))
+                  "minio_id" to a.minioId))
         }
-
         post
       }
 
@@ -87,7 +85,7 @@ class PostAction(private val config: ApplicationConfig) : IPostAction {
                       postId = a.postid,
                       type = AttachmentType.valueOf(a.type),
                       position = a.position,
-                      url = a.url)
+                      minioId = a.minio_id)
                 },
             reactions =
                 reactionsRows.map { r ->

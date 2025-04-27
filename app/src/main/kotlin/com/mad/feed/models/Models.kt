@@ -21,7 +21,7 @@ data class PostAttachment(
     val postId: String,
     val type: AttachmentType,
     val position: Int,
-    val minoId: String
+    val minioId: String
 )
 
 @Serializable

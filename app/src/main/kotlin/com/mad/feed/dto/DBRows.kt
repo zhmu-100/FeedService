@@ -15,7 +15,7 @@ data class DbPostAttachmentRow(
     val postid: String,
     val type: String,
     val position: Int,
-    val url: String
+    val minio_id: String
 )
 
 @Serializable
