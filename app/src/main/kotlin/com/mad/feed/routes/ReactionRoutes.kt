@@ -14,13 +14,13 @@ import org.koin.ktor.ext.inject
  * Роутер маршрутов для работы с реакциями к постам
  *
  * Маршруты:
- * - POST /api/posts/{postId}/reactions - добавить реакцию к посту
- * - DELETE /api/posts/{postId}/reactions - удалить реакцию к посту
+ * - POST /posts/{postId}/reactions - добавить реакцию к посту
+ * - DELETE /posts/{postId}/reactions - удалить реакцию к посту
  */
 fun Route.configureReactionRoutes() {
   val reactionService: ReactionService by inject()
 
-  route("/api/posts/{postId}/reactions") {
+  route("/posts/{postId}/reactions") {
     /**
      * Добавляет реакцию к посту
      *

@@ -14,15 +14,15 @@ import org.koin.ktor.ext.inject
  * Роутер маршрутов для работы с постами
  *
  * Маршруты:
- * - POST /api/posts - создание нового поста
- * - GET /api/posts/{id} - получение поста по ID
- * - GET /api/posts - получение списка постов (общая лента)
- * - GET /api/posts/user/{userId} - получение списка постов пользователя
+ * - POST /posts - создание нового поста
+ * - GET /posts/{id} - получение поста по ID
+ * - GET /posts - получение списка постов (общая лента)
+ * - GET /posts/user/{userId} - получение списка постов пользователя
  */
 fun Route.configurePostRoutes() {
   val postService: PostService by inject()
 
-  route("/api/posts") {
+  route("/posts") {
     /**
      * Создает новый пост.
      *

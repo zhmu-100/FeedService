@@ -16,13 +16,13 @@ import org.koin.ktor.ext.inject
  * Роутер маршрутов для работы с комментариями к постам
  *
  * Маршруты:
- * - POST /api/posts/{postId}/comments - добавить комментарий к посту
- * - GET /api/posts/{postId}/comments - получить список комментариев к посту
+ * - POST /posts/{postId}/comments - добавить комментарий к посту
+ * - GET /posts/{postId}/comments - получить список комментариев к посту
  */
 fun Route.configureCommentRoutes() {
   val commentService: CommentService by inject()
 
-  route("/api/posts/{postId}/comments") {
+  route("/posts/{postId}/comments") {
     /**
      * Добавляет комментарий к посту
      *
