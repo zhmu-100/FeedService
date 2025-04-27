@@ -11,38 +11,38 @@ class PostService(
     private val postRepository: PostRepository,
     private val reactionRepository: ReactionRepository
 ) {
-    fun createPost(request: CreatePostRequest): Post {
-        val postId = UUID.randomUUID().toString()
-        
-        val attachments = request.attachments.map { attachment ->
-            PostAttachment(
-                id = UUID.randomUUID().toString(),
-                postId = postId,
-                type = attachment.type,
-                position = attachment.position,
-                url = attachment.url
-            )
+  fun createPost(request: CreatePostRequest): Post {
+    val postId = UUID.randomUUID().toString()
+
+    val attachments =
+        request.attachments.map { attachment ->
+          PostAttachment(
+              id = UUID.randomUUID().toString(),
+              postId = postId,
+              type = attachment.type,
+              position = attachment.position,
+              url = attachment.url)
         }
-        
-        val post = Post(
+
+    val post =
+        Post(
             id = postId,
             userId = request.userId,
             content = request.content,
-            attachments = attachments
-        )
-        
-        return postRepository.createPost(post)
-    }
-    
-    fun getPostById(id: String): Post? {
-        return postRepository.getPostById(id)
-    }
-    
-    fun listUserPosts(userId: String, page: Int, pageSize: Int): Pair<List<Post>, Long> {
-        return postRepository.listUserPosts(userId, page, pageSize)
-    }
-    
-    fun listPosts(page: Int, pageSize: Int): Pair<List<Post>, Long> {
-        return postRepository.listPosts(page, pageSize)
-    }
+            attachments = attachments)
+
+    return postRepository.createPost(post)
+  }
+
+  fun getPostById(id: String): Post? {
+    return postRepository.getPostById(id)
+  }
+
+  fun listUserPosts(userId: String, page: Int, pageSize: Int): Pair<List<Post>, Long> {
+    return postRepository.listUserPosts(userId, page, pageSize)
+  }
+
+  fun listPosts(page: Int, pageSize: Int): Pair<List<Post>, Long> {
+    return postRepository.listPosts(page, pageSize)
+  }
 }

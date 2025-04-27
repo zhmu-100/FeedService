@@ -1,8 +1,8 @@
 package com.mad.feed.models
 
+import java.util.UUID
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
-import java.util.UUID
 
 @Serializable
 data class Post(
@@ -34,11 +34,7 @@ data class PostComment(
 )
 
 @Serializable
-data class PostReaction(
-    val postId: String,
-    val userId: String,
-    val reaction: ReactionType
-)
+data class PostReaction(val postId: String, val userId: String, val reaction: ReactionType)
 
 // Request/Response models
 @Serializable
@@ -48,28 +44,13 @@ data class CreatePostRequest(
     val attachments: List<PostAttachment> = emptyList()
 )
 
-@Serializable
-data class CreateCommentRequest(
-    val userId: String,
-    val content: String
-)
+@Serializable data class CreateCommentRequest(val userId: String, val content: String)
 
-@Serializable
-data class AddReactionRequest(
-    val userId: String,
-    val reaction: ReactionType
-)
+@Serializable data class AddReactionRequest(val userId: String, val reaction: ReactionType)
 
-@Serializable
-data class RemoveReactionRequest(
-    val userId: String
-)
+@Serializable data class RemoveReactionRequest(val userId: String)
 
-@Serializable
-data class PaginationRequest(
-    val page: Int = 1,
-    val pageSize: Int = 20
-)
+@Serializable data class PaginationRequest(val page: Int = 1, val pageSize: Int = 20)
 
 @Serializable
 data class ListPostsResponse(

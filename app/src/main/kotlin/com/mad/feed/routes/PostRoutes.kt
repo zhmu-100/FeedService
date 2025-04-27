@@ -12,53 +12,56 @@ import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
 
 fun Route.configurePostRoutes() {
-    val postService: PostService by inject()
-    
-    route("/api/posts") {
-        // Create a new post
-        post {
-            val request = call.receive<CreatePostRequest>()
-            val post = postService.createPost(request)
-            call.respond(HttpStatusCode.Created, post)
-        }
-        
-        // Get a post by ID
-        get("/{id}") {
-            val id = call.parameters["id"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing post ID")
-            val post = postService.getPostById(id) ?: return@get call.respond(HttpStatusCode.NotFound, "Post not found")
-            call.respond(post)
-        }
-        
-        // List posts for general feed
-        get {
-            val pagination = call.receive<PaginationRequest>()
-            val (posts, totalCount) = postService.listPosts(pagination.page, pagination.pageSize)
-            
-            call.respond(
-                ListPostsResponse(
-                    posts = posts,
-                    totalCount = totalCount,
-                    page = pagination.page,
-                    pageSize = pagination.pageSize
-                )
-            )
-        }
-        
-        // List posts by a specific user
-        get("/user/{userId}") {
-            val userId = call.parameters["userId"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing user ID")
-            val pagination = call.receive<PaginationRequest>()
-            
-            val (posts, totalCount) = postService.listUserPosts(userId, pagination.page, pagination.pageSize)
-            
-            call.respond(
-                ListPostsResponse(
-                    posts = posts,
-                    totalCount = totalCount,
-                    page = pagination.page,
-                    pageSize = pagination.pageSize
-                )
-            )
-        }
+  val postService: PostService by inject()
+
+  route("/api/posts") {
+    // Create a new post
+    post {
+      val request = call.receive<CreatePostRequest>()
+      val post = postService.createPost(request)
+      call.respond(HttpStatusCode.Created, post)
     }
+
+    // Get a post by ID
+    get("/{id}") {
+      val id =
+          call.parameters["id"]
+              ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing post ID")
+      val post =
+          postService.getPostById(id)
+              ?: return@get call.respond(HttpStatusCode.NotFound, "Post not found")
+      call.respond(post)
+    }
+
+    // List posts for general feed
+    get {
+      val pagination = call.receive<PaginationRequest>()
+      val (posts, totalCount) = postService.listPosts(pagination.page, pagination.pageSize)
+
+      call.respond(
+          ListPostsResponse(
+              posts = posts,
+              totalCount = totalCount,
+              page = pagination.page,
+              pageSize = pagination.pageSize))
+    }
+
+    // List posts by a specific user
+    get("/user/{userId}") {
+      val userId =
+          call.parameters["userId"]
+              ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing user ID")
+      val pagination = call.receive<PaginationRequest>()
+
+      val (posts, totalCount) =
+          postService.listUserPosts(userId, pagination.page, pagination.pageSize)
+
+      call.respond(
+          ListPostsResponse(
+              posts = posts,
+              totalCount = totalCount,
+              page = pagination.page,
+              pageSize = pagination.pageSize))
+    }
+  }
 }
