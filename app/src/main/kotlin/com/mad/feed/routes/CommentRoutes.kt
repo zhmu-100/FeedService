@@ -12,11 +12,23 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
 
+/**
+ * Роутер маршрутов для работы с комментариями к постам
+ *
+ * Маршруты:
+ * - POST /api/posts/{postId}/comments - добавить комментарий к посту
+ * - GET /api/posts/{postId}/comments - получить список комментариев к посту
+ */
 fun Route.configureCommentRoutes() {
   val commentService: CommentService by inject()
 
   route("/api/posts/{postId}/comments") {
-    // Add a new comment to a post
+    /**
+     * Добавляет комментарий к посту
+     *
+     * Требуется [PostComment] в теле запроса Возвращает статус `201 Created` и добавленный
+     * комментарий
+     */
     post {
       val postId =
           call.parameters["postId"]
@@ -29,7 +41,12 @@ fun Route.configureCommentRoutes() {
       call.respond(HttpStatusCode.Created, createdComment)
     }
 
-    // List comments for a post
+    /**
+     * Получает список комментариев к посту
+     *
+     * Параметры запроса: `page`, `page_size`. Возвращает список комментариев в объекте
+     * [ListCommentsResponse].
+     */
     get {
       val postId =
           call.parameters["postId"]

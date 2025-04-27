@@ -10,18 +10,36 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
 
+/**
+ * Роутер маршрутов для работы с постами
+ *
+ * Маршруты:
+ * - POST /api/posts - создание нового поста
+ * - GET /api/posts/{id} - получение поста по ID
+ * - GET /api/posts - получение списка постов (общая лента)
+ * - GET /api/posts/user/{userId} - получение списка постов пользователя
+ */
 fun Route.configurePostRoutes() {
   val postService: PostService by inject()
 
   route("/api/posts") {
-    // Create a new post
+    /**
+     * Создает новый пост.
+     *
+     * Требуется [CreatePostRequest] в теле запроса. Возвращает статус `201 Created` и созданный
+     * пост.
+     */
     post {
       val request = call.receive<CreatePostRequest>()
       val post = postService.createPost(request)
       call.respond(HttpStatusCode.Created, post)
     }
 
-    // Get a post by ID
+    /**
+     * Получает пост по его идентификатору.
+     *
+     * Параметр пути: `id`. Возвращает пост или статус `404 Not Found`, если пост не найден.
+     */
     get("/{id}") {
       val id =
           call.parameters["id"]
@@ -32,7 +50,12 @@ fun Route.configurePostRoutes() {
       call.respond(post)
     }
 
-    // List posts for general feed
+    /**
+     * Получает список постов для общего фида.
+     *
+     * Параметры запроса: `page`, `page_size`. Возвращает список постов в объекте
+     * [ListPostsResponse].
+     */
     get {
       val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
       val pageSize = call.request.queryParameters["page_size"]?.toIntOrNull() ?: 20
@@ -41,7 +64,12 @@ fun Route.configurePostRoutes() {
       call.respond(ListPostsResponse(posts = posts))
     }
 
-    // List posts by a specific user
+    /**
+     * Получает список постов конкретного пользователя.
+     *
+     * Параметр пути: `userId`. Параметры запроса: `page`, `page_size`. Возвращает список постов
+     * пользователя в объекте [ListPostsResponse].
+     */
     get("/user/{userId}") {
       val userId =
           call.parameters["userId"]

@@ -5,6 +5,11 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 
+/**
+ * Точка входа в фид сервис.
+ *
+ * Сервис запускается на порту 8082 либо по application.conf, хост 0.0.0.0
+ */
 fun main() {
   embeddedServer(
           Netty,
@@ -14,6 +19,13 @@ fun main() {
       .start(wait = true)
 }
 
+/**
+ * Подключает:
+ * - сериализацию [configureSerialization]
+ * - мониторинг [configureMonitoring]
+ * - мзависимости [configureDependencyInjection]
+ * - маршрутизацию [configureRouting]
+ */
 fun Application.module() {
   configureSerialization()
   configureMonitoring()

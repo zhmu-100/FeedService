@@ -13,6 +13,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
 
+/**
+ * Реализация интерфейса [IPostAction] для работы с постами
+ *
+ * @param config Конфигурация приложения для определения адреса базы данных
+ *
+ * Реализует методы:
+ * - [createPost]
+ * - [getPostById]
+ * - [listUserPosts]
+ * - [listPosts]
+ */
 class PostAction(private val config: ApplicationConfig) : IPostAction {
 
   private val dbMode = config.propertyOrNull("ktor.database.mode")?.getString() ?: "LOCAL"
@@ -25,6 +36,12 @@ class PostAction(private val config: ApplicationConfig) : IPostAction {
 
   private val http = HttpClient { install(ContentNegotiation) { json() } }
 
+  /**
+   * Создает новый пост и его вложения
+   *
+   * @param post Пост для создания
+   * @return Созданный пост
+   */
   override suspend fun createPost(post: Post): Post =
       withContext(Dispatchers.IO) {
         callCreate(
@@ -48,6 +65,12 @@ class PostAction(private val config: ApplicationConfig) : IPostAction {
         post
       }
 
+  /**
+   * Получает пост по его идентификатору вместе с вложениями, реакциями и комментариями
+   *
+   * @param id Идентификатор поста
+   * @return Пост или `null`, если не найден
+   */
   override suspend fun getPostById(id: String): Post? =
       withContext(Dispatchers.IO) {
         val postRow =
@@ -100,9 +123,23 @@ class PostAction(private val config: ApplicationConfig) : IPostAction {
       pageSize: Int
   ): Pair<List<Post>, Long> = listPostsInternal(filters = mapOf("userid" to userId), page, pageSize)
 
+  /**
+   * Получает список постов конкретного пользователя с пагинацией
+   * @param page Номер страницы
+   * @param pageSize Размер страницы
+   * @return Пара из списка постов и общего количества постов
+   */
   override suspend fun listPosts(page: Int, pageSize: Int): Pair<List<Post>, Long> =
       listPostsInternal(filters = null, page, pageSize)
 
+  /**
+   * Получает список постов с пагинацией
+   *
+   * @param filters Фильтры для выборки постов
+   * @param page Номер страницы
+   * @param pageSize Размер страницы
+   * @return Пара из списка постов и общего количества постов
+   */
   private suspend fun listPostsInternal(
       filters: Map<String, String>?,
       page: Int,
@@ -119,6 +156,13 @@ class PostAction(private val config: ApplicationConfig) : IPostAction {
         Pair(posts, total)
       }
 
+  /**
+   * Создает новую запись в базе данных
+   *
+   * @param table Имя таблицы
+   * @param data Данные для вставки в виде карты ключ–значение
+   * @throws Exception Если создание записи не удалось
+   */
   private suspend fun callCreate(table: String, data: Map<String, String>) {
     val body = DbCreateRequest(table, data)
     val resp: DbResponse =
@@ -131,6 +175,13 @@ class PostAction(private val config: ApplicationConfig) : IPostAction {
     if (resp.success != true) error("DB create failed: ${resp.error}")
   }
 
+  /**
+   * Выполняет SELECT запрос для получения записей из таблицы
+   *
+   * @param table Имя таблицы
+   * @param filters Карта фильтров для условия WHERE
+   * @return Список записей в виде карты ключ–значение
+   */
   private suspend inline fun <reified R> callRead(
       table: String,
       filters: Map<String, String>? = null

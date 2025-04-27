@@ -10,11 +10,23 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
 
+/**
+ * Роутер маршрутов для работы с реакциями к постам
+ *
+ * Маршруты:
+ * - POST /api/posts/{postId}/reactions - добавить реакцию к посту
+ * - DELETE /api/posts/{postId}/reactions - удалить реакцию к посту
+ */
 fun Route.configureReactionRoutes() {
   val reactionService: ReactionService by inject()
 
   route("/api/posts/{postId}/reactions") {
-    // Add a reaction to a post
+    /**
+     * Добавляет реакцию к посту
+     *
+     * Требуется [AddReactionRequest] в теле запроса Возвращает статус `201 Created` и добавленную
+     * реакцию
+     */
     post {
       val postId =
           call.parameters["postId"]
@@ -25,7 +37,12 @@ fun Route.configureReactionRoutes() {
       call.respond(HttpStatusCode.Created, reaction)
     }
 
-    // Remove a reaction from a post
+    /**
+     * Удаляет реакцию пользователя с поста
+     *
+     * Требуется [RemoveReactionRequest] в теле запроса Возвращает статус `204 No Content` при
+     * успехе или `404 Not Found`, если реакция не найдена
+     */
     delete {
       val postId =
           call.parameters["postId"]

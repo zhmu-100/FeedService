@@ -7,6 +7,11 @@ import org.koin.dsl.module
 import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
 
+/**
+ * Конфигурация внедрения зависимостей для Ktor приложения
+ *
+ * Устанавливает Koin для управления зависимостями и предоставляет модули для сервисов и действий.
+ */
 fun Application.configureDependencyInjection() {
   install(Koin) {
     slf4jLogger()
@@ -14,6 +19,13 @@ fun Application.configureDependencyInjection() {
   }
 }
 
+/**
+ * Модуль приложения для Koin
+ *
+ * Содержит определения зависимостей для действий и сервисов.
+ *
+ * @param app экземпляр приложения Ktor
+ */
 fun appModule(app: Application) = module {
   single { app.environment.config }
   // Repositories

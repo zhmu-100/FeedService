@@ -6,13 +6,22 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.config.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+/**
+ * Реализация интерфейса [IReactionAction] для работы с реакциями на посты
+ *
+ * Выполняет HTTP-запросы к сервису базы данных для создания и удаления реакций
+ * @param config Конфигурация приложения для определения адреса базы данных
+ *
+ * Реализует методы:
+ * - [addReaction]
+ * - [removeReaction]
+ */
 class ReactionAction(config: ApplicationConfig) : IReactionAction {
 
   private val dbMode = config.propertyOrNull("ktor.database.mode")?.getString() ?: "LOCAL"
@@ -24,6 +33,14 @@ class ReactionAction(config: ApplicationConfig) : IReactionAction {
 
   private val http = HttpClient { install(ContentNegotiation) { json() } }
 
+  /**
+   * Добавляет реакцию к посту
+   *
+   * Предварительно удаляет существующую реакцию пользователя на тот же пост
+   *
+   * @param reaction Реакция для добавления
+   * @return Добавленная реакция
+   */
   override suspend fun addReaction(reaction: PostReaction): PostReaction =
       withContext(Dispatchers.IO) {
         val deleteBody =
@@ -56,6 +73,13 @@ class ReactionAction(config: ApplicationConfig) : IReactionAction {
         reaction
       }
 
+  /**
+   * Удаляет реакцию пользователя с поста
+   *
+   * @param postId Идентификатор поста
+   * @param userId Идентификатор пользователя
+   * @return `true`, если удаление прошло успешно
+   */
   override suspend fun removeReaction(postId: String, userId: String): Boolean =
       withContext(Dispatchers.IO) {
         val deleteBody =

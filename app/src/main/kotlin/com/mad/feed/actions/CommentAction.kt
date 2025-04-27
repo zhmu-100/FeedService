@@ -16,6 +16,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
 
+/**
+ * Реализация интерфейса [ICommentAction] для работы с комментариями к постам
+ *
+ * @param config Конфигурация приложения для определения адреса базы данных
+ *
+ * Реализует методы:
+ * - [createComment]
+ * - [listComments]
+ */
 class CommentAction(config: ApplicationConfig) : ICommentAction {
 
   private val dbMode = config.propertyOrNull("ktor.database.mode")?.getString() ?: "LOCAL"
@@ -27,6 +36,13 @@ class CommentAction(config: ApplicationConfig) : ICommentAction {
 
   private val http = HttpClient { install(ContentNegotiation) { json() } }
 
+  /**
+   * Создает новый комментарий к посту
+   *
+   * @param postId Идентификатор поста, к которому добавляется комментарий
+   * @param comment Комментарий для создания
+   * @return Созданный комментарий
+   */
   override suspend fun createComment(postId: String, comment: PostComment): PostComment =
       withContext(Dispatchers.IO) {
         val body =
@@ -54,6 +70,14 @@ class CommentAction(config: ApplicationConfig) : ICommentAction {
         comment
       }
 
+  /**
+   * Получает список комментариев к посту с заданной страницы и размером страницы
+   *
+   * @param postId Идентификатор поста, для которого получаем комментарии
+   * @param page Номер страницы
+   * @param pageSize Размер страницы
+   * @return Список комментариев к посту
+   */
   override suspend fun listComments(postId: String, page: Int, pageSize: Int): List<PostComment> =
       withContext(Dispatchers.IO) {
         val commentRows =
@@ -77,6 +101,12 @@ class CommentAction(config: ApplicationConfig) : ICommentAction {
         }
       }
 
+  /**
+   * Удаляет комментарий к посту
+   *
+   * @param commentId Идентификатор комментария, который нужно удалить
+   * @return `true`, если удаление прошло успешно
+   */
   private suspend inline fun <reified R> callRead(
       table: String,
       filters: Map<String, String>? = null
