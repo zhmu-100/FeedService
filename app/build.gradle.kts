@@ -12,8 +12,8 @@ plugins {
     id("org.jetbrains.dokka") version "1.9.20"
     id("com.ncorti.ktfmt.gradle") version "0.11.0"
     application
+    jacoco
 }
-
 
 repositories {
     // Use Maven Central for resolving dependencies.
@@ -41,20 +41,18 @@ dependencies {
     implementation("io.insert-koin:koin-logger-slf4j:3.3.0")
     implementation("io.ktor:ktor-server-call-logging:2.2.4")
 
+    testImplementation("io.mockk:mockk:1.13.5")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
 }
-
 
 testing {
     suites {
-        // Configure the built-in test suite
         val test by getting(JvmTestSuite::class) {
-            // Use JUnit Jupiter test framework
             useJUnitJupiter("5.11.3")
         }
     }
 }
 
-// Apply a specific Java toolchain to ease working on different environments.
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(8)
@@ -62,6 +60,42 @@ java {
 }
 
 application {
-    // Define the main class for the application.
     mainClass = "com.mad.feed.ApplicationKt"
+}
+
+jacoco {
+    toolVersion = "0.8.10"
+}
+
+tasks {
+    test {
+        useJUnitPlatform()
+    }
+
+    jacocoTestReport {
+        dependsOn(test)
+        reports {
+            xml.required.set(false)
+            html.required.set(false)
+            csv.required.set(false)
+        }
+    }
+
+    jacocoTestCoverageVerification {
+        dependsOn(test)
+        violationRules {
+            rule {
+                limit {
+                    minimum = "0.60".toBigDecimal()
+                }
+            }
+        }
+    }
+
+    check {
+        dependsOn(jacocoTestCoverageVerification)
+    }
+    build {
+        dependsOn(jacocoTestCoverageVerification)
+    }
 }
