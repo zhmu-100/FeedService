@@ -1,21 +1,16 @@
 package com.mad.feed
 
 import com.mad.feed.plugins.*
+import io.github.cdimascio.dotenv.dotenv
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 
-/**
- * Точка входа в фид сервис.
- *
- * Сервис запускается на порту 8082 либо по application.conf, хост 0.0.0.0
- */
+/** Точка входа в фид сервис. */
 fun main() {
-  embeddedServer(
-          Netty,
-          port = System.getenv("PORT")?.toIntOrNull() ?: 8082,
-          host = "0.0.0.0",
-          module = Application::module)
+  val dotenv = dotenv()
+  val port = dotenv["PORT"]?.toIntOrNull() ?: 8082
+  embeddedServer(Netty, port = port, host = "0.0.0.0", module = Application::module)
       .start(wait = true)
 }
 

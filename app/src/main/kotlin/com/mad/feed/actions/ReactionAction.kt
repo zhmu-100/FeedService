@@ -2,13 +2,13 @@ package com.mad.feed.actions
 
 import com.mad.feed.dto.*
 import com.mad.feed.models.PostReaction
+import io.github.cdimascio.dotenv.dotenv
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import io.ktor.server.config.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -16,17 +16,17 @@ import kotlinx.coroutines.withContext
  * Реализация интерфейса [IReactionAction] для работы с реакциями на посты
  *
  * Выполняет HTTP-запросы к сервису базы данных для создания и удаления реакций
- * @param config Конфигурация приложения для определения адреса базы данных
  *
  * Реализует методы:
  * - [addReaction]
  * - [removeReaction]
  */
-class ReactionAction(config: ApplicationConfig) : IReactionAction {
+class ReactionAction : IReactionAction {
 
-  private val dbMode = config.propertyOrNull("ktor.database.mode")?.getString() ?: "LOCAL"
-  private val dbHost = config.propertyOrNull("ktor.database.host")?.getString() ?: "localhost"
-  private val dbPort = config.propertyOrNull("ktor.database.port")?.getString() ?: "8080"
+  private val dotenv = dotenv()
+  private val dbMode = dotenv["DB_MODE"] ?: "LOCAL"
+  private val dbHost = dotenv["DB_HOST"] ?: "localhost"
+  private val dbPort = dotenv["DB_PORT"] ?: "8080"
   private val baseUrl =
       if (dbMode.equals("gateway", true)) "http://$dbHost:$dbPort/api/db"
       else "http://$dbHost:$dbPort"
