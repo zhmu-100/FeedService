@@ -2,13 +2,13 @@ package com.mad.feed.actions
 
 import com.mad.feed.dto.*
 import com.mad.feed.models.*
+import io.github.cdimascio.dotenv.dotenv
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import io.ktor.server.config.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
@@ -16,20 +16,18 @@ import kotlinx.datetime.Instant
 /**
  * Реализация интерфейса [IPostAction] для работы с постами
  *
- * @param config Конфигурация приложения для определения адреса базы данных
- *
  * Реализует методы:
  * - [createPost]
  * - [getPostById]
  * - [listUserPosts]
  * - [listPosts]
  */
-class PostAction(private val config: ApplicationConfig) : IPostAction {
+class PostAction : IPostAction {
 
-  private val dbMode = config.propertyOrNull("ktor.database.mode")?.getString() ?: "LOCAL"
-  private val dbHost = config.propertyOrNull("ktor.database.host")?.getString() ?: "localhost"
-  private val dbPort = config.propertyOrNull("ktor.database.port")?.getString() ?: "8080"
-
+  private val dotenv = dotenv()
+  private val dbMode = dotenv["DB_MODE"] ?: "LOCAL"
+  private val dbHost = dotenv["DB_HOST"] ?: "localhost"
+  private val dbPort = dotenv["DB_PORT"] ?: "8080"
   private val baseUrl =
       if (dbMode.equals("gateway", true)) "http://$dbHost:$dbPort/api/db"
       else "http://$dbHost:$dbPort"

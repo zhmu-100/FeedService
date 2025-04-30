@@ -27,11 +27,10 @@ fun Application.configureDependencyInjection() {
  * @param app экземпляр приложения Ktor
  */
 fun appModule(app: Application) = module {
-  single { app.environment.config }
   // Repositories
-  single<IPostAction> { PostAction(get()) }
-  single<ICommentAction> { CommentAction(get()) }
-  single<IReactionAction> { ReactionAction(get()) }
+  single<IPostAction> { PostAction() }
+  single<ICommentAction> { CommentAction() }
+  single<IReactionAction> { ReactionAction() }
 
   // Services
   single { PostService(get()) }
