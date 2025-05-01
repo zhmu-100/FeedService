@@ -9,7 +9,7 @@ PORT=8082
 
 DB_MODE=LOCAL # LOCAL or gateway
 DB_HOST=localhost
-DB_PORT=5432
+DB_PORT=8081
 
 ```
 
