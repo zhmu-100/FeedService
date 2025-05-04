@@ -9,9 +9,7 @@ import io.github.cdimascio.dotenv.dotenv
  * Инициализирует и предоставляет единый экземпляр [LoggerClient] для всего приложения.
  */
 object LoggerProvider {
-    private val dotenv = io.github.cdimascio.dotenv.Dotenv.configure()
-        .directory(".")
-        .load()
+  private val dotenv = io.github.cdimascio.dotenv.Dotenv.configure().directory(".").load()
 
   // Инициализация клиента логгера с параметрами из .env файла
   val logger: LoggerClient by lazy {

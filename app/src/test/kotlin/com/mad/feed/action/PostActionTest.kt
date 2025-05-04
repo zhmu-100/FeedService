@@ -12,7 +12,6 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.post
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import io.ktor.server.config.MapApplicationConfig
 import java.lang.reflect.Field
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Instant
@@ -28,12 +27,7 @@ class PostActionTest {
 
   @BeforeEach
   fun setUp() {
-    val config =
-        MapApplicationConfig(
-            "ktor.database.mode" to "LOCAL",
-            "ktor.database.host" to "localhost",
-            "ktor.database.port" to "8080")
-    action = PostAction(config)
+    action = PostAction()
   }
 
   @Test

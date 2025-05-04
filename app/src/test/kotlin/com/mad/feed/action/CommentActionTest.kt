@@ -10,7 +10,6 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.serialization.kotlinx.json.json
-import io.ktor.server.config.MapApplicationConfig
 import java.lang.reflect.Field
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Instant
@@ -26,12 +25,7 @@ class CommentActionTest {
 
   @BeforeEach
   fun setUp() {
-    val config =
-        MapApplicationConfig(
-            "ktor.database.mode" to "LOCAL",
-            "ktor.database.host" to "testhost",
-            "ktor.database.port" to "1234")
-    action = CommentAction(config)
+    action = CommentAction()
   }
 
   @Test

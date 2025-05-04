@@ -13,7 +13,6 @@ import io.ktor.http.*
 import io.ktor.http.content.TextContent
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.serialization.kotlinx.json.json
-import io.ktor.server.config.MapApplicationConfig
 import java.lang.reflect.Field
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
@@ -27,12 +26,7 @@ class ReactionActionTest {
 
   @BeforeEach
   fun setUp() {
-    val config =
-        MapApplicationConfig(
-            "ktor.database.mode" to "LOCAL",
-            "ktor.database.host" to "localhost",
-            "ktor.database.port" to "8080")
-    action = ReactionAction(config)
+    action = ReactionAction()
   }
 
   @Test
