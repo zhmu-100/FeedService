@@ -16,8 +16,8 @@ plugins {
 
 
 repositories {
-    // Use Maven Central for resolving dependencies.
     mavenCentral()
+    maven { url = uri("https://jitpack.io") }
 }
 
 dependencies {
@@ -36,6 +36,8 @@ dependencies {
     implementation("io.ktor:ktor-client-cio-jvm:2.2.4")
     implementation("io.ktor:ktor-client-content-negotiation-jvm:2.2.4")
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:2.2.4")
+
+    implementation("com.github.poplopok:Logger:1.0.6")
 
     implementation("io.insert-koin:koin-core:3.3.3")
     implementation("io.insert-koin:koin-ktor:3.3.1")
@@ -58,7 +60,7 @@ testing {
 // Apply a specific Java toolchain to ease working on different environments.
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(8)
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }
 

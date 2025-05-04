@@ -1,6 +1,7 @@
 package com.mad.feed.actions
 
 import com.mad.feed.dto.*
+import com.mad.feed.logging.LoggerProvider
 import com.mad.feed.models.*
 import io.github.cdimascio.dotenv.dotenv
 import io.ktor.client.*
@@ -23,7 +24,7 @@ import kotlinx.datetime.Instant
  * - [listPosts]
  */
 class PostAction : IPostAction {
-
+  private val logger = LoggerProvider.logger
   private val dotenv = dotenv()
   private val dbMode = dotenv["DB_MODE"] ?: "LOCAL"
   private val dbHost = dotenv["DB_HOST"] ?: "localhost"
@@ -42,25 +43,46 @@ class PostAction : IPostAction {
    */
   override suspend fun createPost(post: Post): Post =
       withContext(Dispatchers.IO) {
-        callCreate(
-            "posts",
-            mapOf(
-                "id" to post.id,
-                "userid" to post.userId,
-                "content" to (post.content ?: ""),
-                "date" to post.date.toString()))
+        logger.logActivity(
+            "Создание нового поста",
+            additionalData =
+                mapOf(
+                    "postId" to post.id,
+                    "userId" to post.userId,
+                    "attachmentsCount" to post.attachments.size.toString()))
 
-        post.attachments.forEach { a ->
+        try {
           callCreate(
-              "post_attachments",
+              "posts",
               mapOf(
-                  "id" to a.id,
-                  "postid" to a.postId,
-                  "type" to a.type.name,
-                  "position" to a.position.toString(),
-                  "minio_id" to a.minioId))
+                  "id" to post.id,
+                  "userid" to post.userId,
+                  "content" to (post.content ?: ""),
+                  "date" to post.date.toString()))
+
+          post.attachments.forEach { a ->
+            callCreate(
+                "post_attachments",
+                mapOf(
+                    "id" to a.id,
+                    "postid" to a.postId,
+                    "type" to a.type.name,
+                    "position" to a.position.toString(),
+                    "minio_id" to a.minioId))
+          }
+
+          logger.logActivity(
+              "Пост успешно создан",
+              additionalData = mapOf("postId" to post.id, "userId" to post.userId))
+
+          post
+        } catch (e: Exception) {
+          logger.logError(
+              "Ошибка при создании поста: postId=${post.id}, userId=${post.userId}",
+              errorMessage = e.message ?: "Неизвестная ошибка",
+              stackTrace = e.stackTraceToString())
+          throw e
         }
-        post
       }
 
   /**
@@ -71,48 +93,75 @@ class PostAction : IPostAction {
    */
   override suspend fun getPostById(id: String): Post? =
       withContext(Dispatchers.IO) {
-        val postRow =
-            callRead<DbPostRow>("posts", mapOf("id" to id)).firstOrNull() ?: return@withContext null
+        logger.logActivity("Получение поста по ID", additionalData = mapOf("postId" to id))
 
-        val attachmentsRows =
-            callRead<DbPostAttachmentRow>("post_attachments", mapOf("postid" to id))
-        val reactionsRows = callRead<DbPostReactionRow>("post_reactions", mapOf("postid" to id))
-        val commentsRows = callRead<DbPostCommentRow>("post_comments", mapOf("postid" to id))
+        try {
+          val postRow = callRead<DbPostRow>("posts", mapOf("id" to id)).firstOrNull()
 
-        val comments =
-            commentsRows.map { cRow ->
-              val crRows =
-                  callRead<DbCommentReactionRow>("comment_reactions", mapOf("commentid" to cRow.id))
-              PostComment(
-                  id = cRow.id,
-                  userId = cRow.userid,
-                  content = cRow.content,
-                  date = Instant.parse(cRow.date),
+          if (postRow == null) {
+            logger.logActivity("Пост не найден", additionalData = mapOf("postId" to id))
+            return@withContext null
+          }
+
+          val attachmentsRows =
+              callRead<DbPostAttachmentRow>("post_attachments", mapOf("postid" to id))
+          val reactionsRows = callRead<DbPostReactionRow>("post_reactions", mapOf("postid" to id))
+          val commentsRows = callRead<DbPostCommentRow>("post_comments", mapOf("postid" to id))
+
+          val comments =
+              commentsRows.map { cRow ->
+                val crRows =
+                    callRead<DbCommentReactionRow>(
+                        "comment_reactions", mapOf("commentid" to cRow.id))
+                PostComment(
+                    id = cRow.id,
+                    userId = cRow.userid,
+                    content = cRow.content,
+                    date = Instant.parse(cRow.date),
+                    reactions =
+                        crRows.map { cr ->
+                          PostReaction(cRow.id, cr.userid, ReactionType.valueOf(cr.reaction))
+                        })
+              }
+
+          val post =
+              Post(
+                  id = postRow.id,
+                  userId = postRow.userid,
+                  content = postRow.content.takeIf { it?.isNotBlank() == true },
+                  date = Instant.parse(postRow.date),
+                  attachments =
+                      attachmentsRows.map { a ->
+                        PostAttachment(
+                            id = a.id,
+                            postId = a.postid,
+                            type = AttachmentType.valueOf(a.type),
+                            position = a.position,
+                            minioId = a.minio_id)
+                      },
                   reactions =
-                      crRows.map { cr ->
-                        PostReaction(cRow.id, cr.userid, ReactionType.valueOf(cr.reaction))
-                      })
-            }
+                      reactionsRows.map { r ->
+                        PostReaction(id, r.userid, ReactionType.valueOf(r.reaction))
+                      },
+                  comments = comments)
 
-        Post(
-            id = postRow.id,
-            userId = postRow.userid,
-            content = postRow.content.takeIf { it?.isNotBlank() == true },
-            date = Instant.parse(postRow.date),
-            attachments =
-                attachmentsRows.map { a ->
-                  PostAttachment(
-                      id = a.id,
-                      postId = a.postid,
-                      type = AttachmentType.valueOf(a.type),
-                      position = a.position,
-                      minioId = a.minio_id)
-                },
-            reactions =
-                reactionsRows.map { r ->
-                  PostReaction(id, r.userid, ReactionType.valueOf(r.reaction))
-                },
-            comments = comments)
+          logger.logActivity(
+              "Пост успешно получен",
+              additionalData =
+                  mapOf(
+                      "postId" to id,
+                      "attachmentsCount" to post.attachments.size.toString(),
+                      "reactionsCount" to post.reactions.size.toString(),
+                      "commentsCount" to post.comments.size.toString()))
+
+          post
+        } catch (e: Exception) {
+          logger.logError(
+              "Ошибка при получении поста: postId=$id",
+              errorMessage = e.message ?: "Неизвестная ошибка",
+              stackTrace = e.stackTraceToString())
+          throw e
+        }
       }
 
   override suspend fun listUserPosts(
@@ -144,14 +193,36 @@ class PostAction : IPostAction {
       pageSize: Int
   ): Pair<List<Post>, Long> =
       withContext(Dispatchers.IO) {
-        val postRows =
-            callRead<DbPostRow>("posts", filters).sortedByDescending { Instant.parse(it.date) }
+        logger.logActivity(
+            "Получение списка постов",
+            additionalData =
+                mapOf(
+                    "filters" to (filters?.toString() ?: "null"),
+                    "page" to page.toString(),
+                    "pageSize" to pageSize.toString()))
 
-        val total = postRows.size.toLong()
-        val slice = postRows.drop((page - 1) * pageSize).take(pageSize)
+        try {
+          val postRows =
+              callRead<DbPostRow>("posts", filters).sortedByDescending { Instant.parse(it.date) }
 
-        val posts = slice.map { pr -> getPostById(pr.id)!! }
-        Pair(posts, total)
+          val total = postRows.size.toLong()
+          val slice = postRows.drop((page - 1) * pageSize).take(pageSize)
+
+          val posts = slice.map { pr -> getPostById(pr.id)!! }
+
+          logger.logActivity(
+              "Список постов успешно получен",
+              additionalData =
+                  mapOf("totalPosts" to total.toString(), "returnedPosts" to posts.size.toString()))
+
+          Pair(posts, total)
+        } catch (e: Exception) {
+          logger.logError(
+              "Ошибка при получении списка постов: filters=${filters?.toString() ?: "null"}, page=$page, pageSize=$pageSize",
+              errorMessage = e.message ?: "Неизвестная ошибка",
+              stackTrace = e.stackTraceToString())
+          throw e
+        }
       }
 
   /**
@@ -162,15 +233,35 @@ class PostAction : IPostAction {
    * @throws Exception Если создание записи не удалось
    */
   private suspend fun callCreate(table: String, data: Map<String, String>) {
-    val body = DbCreateRequest(table, data)
-    val resp: DbResponse =
-        http
-            .post("$baseUrl/create") {
-              contentType(ContentType.Application.Json)
-              setBody(body)
-            }
-            .body()
-    if (resp.success != true) error("DB create failed: ${resp.error}")
+    logger.logActivity(
+        "Запрос к БД: создание записи",
+        additionalData = mapOf("table" to table, "dataKeys" to data.keys.joinToString(",")))
+
+    try {
+      val body = DbCreateRequest(table, data)
+      val resp: DbResponse =
+          http
+              .post("$baseUrl/create") {
+                contentType(ContentType.Application.Json)
+                setBody(body)
+              }
+              .body()
+
+      if (resp.success != true) {
+        logger.logError(
+            "Ошибка при создании записи в БД: table=$table",
+            errorMessage = resp.error ?: "Неизвестная ошибка")
+        error("DB create failed: ${resp.error}")
+      }
+
+      logger.logActivity("Запись в БД успешно создана", additionalData = mapOf("table" to table))
+    } catch (e: Exception) {
+      logger.logError(
+          "Исключение при создании записи в БД: table=$table",
+          errorMessage = e.message ?: "Неизвестная ошибка",
+          stackTrace = e.stackTraceToString())
+      throw e
+    }
   }
 
   /**
@@ -183,11 +274,31 @@ class PostAction : IPostAction {
   private suspend inline fun <reified R> callRead(
       table: String,
       filters: Map<String, String>? = null
-  ): List<R> =
-      http
-          .post("$baseUrl/read") {
-            contentType(ContentType.Application.Json)
-            setBody(DbReadRequest(table = table, filters = filters))
-          }
-          .body()
+  ): List<R> {
+    logger.logActivity(
+        "Запрос к БД: чтение данных",
+        additionalData = mapOf("table" to table, "filters" to (filters?.toString() ?: "null")))
+
+    try {
+      val result =
+          http
+              .post("$baseUrl/read") {
+                contentType(ContentType.Application.Json)
+                setBody(DbReadRequest(table = table, filters = filters))
+              }
+              .body<List<R>>()
+
+      logger.logActivity(
+          "Данные из БД получены успешно",
+          additionalData = mapOf("table" to table, "rowsCount" to result.size.toString()))
+
+      return result
+    } catch (e: Exception) {
+      logger.logError(
+          "Ошибка при чтении данных из БД: table=$table, filters=${filters?.toString() ?: "null"}",
+          errorMessage = e.message ?: "Неизвестная ошибка",
+          stackTrace = e.stackTraceToString())
+      throw e
+    }
+  }
 }
